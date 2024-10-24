@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rule Engine</title>
+    <script>
+        async function createRule() {
+            const ruleInput = document.getElementById("rule-input").value;
+            const response = await fetch('http://127.0.0.1:5000/create_rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rule_string: ruleInput })  // Updated key to 'rule_string'
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Rule created with ID: ${data.id}`);  // Updated to use 'id'
+                loadRules(); // Refresh rules list
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        }
+
+        async function combineRules() {
+            const ruleIdsInput = document.getElementById("combine-ids-input").value;
+            const ruleIds = ruleIdsInput.split(',').map(id => id.trim()).map(Number); // Convert to numbers
+
+            const response = await fetch('http://127.0.0.1:5000/combine_rules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rule_ids: ruleIds })  // Pass rule IDs as an array
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Combined rule created with ID: ${data.id}`);  // Updated to use 'id'
+                loadRules(); // Refresh rules list
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        }
+
+        async function evaluateRule() {
+            const ruleId = document.getElementById("evaluate-rule-id").value;
+
+            // Parse user input JSON data
+            const userDataInput = document.getElementById("evaluate-data").value;
+            let userData;
+            try {
+                userData = JSON.parse(userDataInput); // Convert JSON string to object
+            } catch (error) {
+                alert("Invalid JSON format for data.");
+                return;
+            }
+
+            const response = await fetch('http://127.0.0.1:5000/evaluate_rule', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ rule_id: Number(ruleId), data: userData })  // Ensure rule_id is a number
+            });
+
+            const data = await response.json();
+            if (response.ok) {
+                alert(`Evaluation Result: ${data.result}`);
+            } else {
+                alert(`Error: ${data.error}`);
+            }
+        }
+
+        async function loadRules() {
+            const response = await fetch('http://127.0.0.1:5000/get_rules');
+            const rulesList = document.getElementById("rules-list");
+            rulesList.innerHTML = ""; // Clear the current list
+
+            if (response.ok) {
+                const rules = await response.json();
+                rules.forEach((rule) => {
+                    const listItem = document.createElement("li");
+                    listItem.textContent = `Rule ID: ${rule.id}, Rule: ${rule.rule}`;  // Use 'rule.id' and 'rule.rule'
+                    rulesList.appendChild(listItem);
+                });
+            } else {
+                alert("Failed to load rules");
+            }
+        }
+
+        // Load rules when the page is loaded
+        window.onload = loadRules;
+    </script>
+</head>
+<body>
+    <h1>Rule Engine</h1>
+
+    <h2>Create Rule</h2>
+    <input type="text" id="rule-input" placeholder="Enter rule (e.g., age > 18)">
+    <button onclick="createRule()">Create Rule</button>
+
+    <h2>Combine Rules</h2>
+    <input type="text" id="combine-ids-input" placeholder="Enter rule IDs (e.g., 1, 2)">
+    <button onclick="combineRules()">Combine Rules</button>
+
+    <h2>Evaluate Rule</h2>
+    <input type="text" id="evaluate-rule-id" placeholder="Enter combined rule ID (e.g., 3)">
+    <input type="text" id="evaluate-data" placeholder='Enter JSON data (e.g., {"age": 30, "country": "US"})'>
+    <button onclick="evaluateRule()">Evaluate Rule</button>
+
+    <h2>All Rules</h2>
+    <ul id="rules-list">
+        <!-- Rules will be dynamically loaded here -->
+    </ul>
+</body>
+</html>
