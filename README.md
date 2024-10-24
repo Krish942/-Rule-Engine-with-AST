@@ -54,7 +54,7 @@ This project implements a **Rule Engine API** using **Flask**. It allows users t
 
 1. **Clone the Repository**  
    ```bash
-   git clone <your-repository-url>
+   git clone <https://github.com/Krish942/-Rule-Engine-with-AST/edit/main/README.md>
    cd Rule_Engine
 2. **Start the app.py on port 5000**
 3.**To start the server**
